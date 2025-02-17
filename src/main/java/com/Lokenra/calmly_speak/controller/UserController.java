@@ -3,8 +3,8 @@ package com.Lokenra.calmly_speak.controller;
 import com.Lokenra.calmly_speak.DTO.UserDto;
 import com.Lokenra.calmly_speak.auth.service.CustomUserServiceDetails;
 import com.Lokenra.calmly_speak.auth.service.JwtService;
-import com.Lokenra.calmly_speak.entity.UserLoginInfo;
-import com.Lokenra.calmly_speak.entity.UserLoginResponse;
+import com.Lokenra.calmly_speak.entity.AuthReq;
+import com.Lokenra.calmly_speak.entity.AuthResponse;
 import com.Lokenra.calmly_speak.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +32,12 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<AuthResponse> createUser(@RequestBody UserDto userDto) {
         UserDto user = userService.createUser(userDto);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        String accessToken = jwtService.generateToken(serviceDetails.loadUserByUsername(user.getEmail()));
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setAccessToken(accessToken);
+        return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
     }
 
     @GetMapping("/user/{userId}")
@@ -43,15 +46,23 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable int userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok("User has been deleted with userId: " + userId);
+    }
+
     @PostMapping("/authenticate")
-    public UserLoginResponse authenticateAndGetToken(@RequestBody UserLoginInfo userLoginInfo) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginInfo.getUsername(), userLoginInfo.getPassword()));
+    public AuthResponse authenticateAndGetToken(@RequestBody AuthReq authReq) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authReq.getEmail(), authReq.getPassword()));
         if (authentication.isAuthenticated()) {
-            UserLoginResponse response = new UserLoginResponse();
-            response.setAccessToken(jwtService.generateToken(serviceDetails.loadUserByUsername(userLoginInfo.getUsername())));
+            AuthResponse response = new AuthResponse();
+            response.setAccessToken(jwtService.generateToken(serviceDetails.loadUserByUsername(authReq.getEmail())));
             return response;
         } else {
             throw new UsernameNotFoundException("Invalid Username or Password");
         }
     }
+
+
 }

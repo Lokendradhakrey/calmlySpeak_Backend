@@ -20,7 +20,7 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         HashMap<String, String> claims = new HashMap<>();
-        claims.put("auther", "Lokenra Dhakrey");
+        claims.put("Author", "Lokenra Dhakrey");
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())

@@ -27,6 +27,7 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(UserDto userDto) {
         User user = this.modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole("USER");
         User savedUser = userRepo.save(user);
         return this.modelMapper.map(savedUser, UserDto.class);
     }
@@ -38,8 +39,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(UserDto userId) {
-
+    public void deleteUser(int userId) {
+        User user = this.userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        this.userRepo.delete(user);
     }
 
     @Override

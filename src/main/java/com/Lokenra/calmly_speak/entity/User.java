@@ -28,6 +28,5 @@ public class User {
     @NotBlank(message = "email must be filled")
     private String email;
     @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private String role;
 }
