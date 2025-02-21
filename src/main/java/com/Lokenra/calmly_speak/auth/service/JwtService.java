@@ -1,5 +1,7 @@
 package com.Lokenra.calmly_speak.auth.service;
 
+import com.Lokenra.calmly_speak.entity.User;
+import com.Lokenra.calmly_speak.repository.UserRepo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -17,13 +19,22 @@ public class JwtService {
 
     private static final String SECRET = "e999c5078cb7388d2779d214fa4a1e1eaf2329fd384c99fc978d2f8a756c1a92";
     public static final SecretKey secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET));
+    private final UserRepo userRepo;
+
+    public JwtService(UserRepo userRepo) {
+        this.userRepo = userRepo;
+    }
+
 
     public String generateToken(UserDetails userDetails) {
         HashMap<String, String> claims = new HashMap<>();
-        claims.put("Author", "Lokenra Dhakrey");
+        String userEmail = userDetails.getUsername();
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        claims.put("username", user.getUsername());
+        claims.put("userId", user.getId().toString());
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(userEmail)
                 .setIssuedAt(Date.from(Instant.now()))
                 .setExpiration(Date.from(Instant.now().plusSeconds(1000)))
                 .signWith(secretKey)
