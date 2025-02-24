@@ -29,4 +29,6 @@ public class User {
     private String email;
     @Column(name = "role")
     private String role;
+    @JoinColumn(name = "connected_user_id")
+    private int connectedUserId;
 }
